@@ -1,25 +1,25 @@
+import {createAudioMeter} from './audio-meter.js';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Chrome desktop supports SpeechRecognition.start(audioTrack). Android's
 // recognizer controls its own audio route and ignores that parameter.
 export function supportsMicSelection(nav=navigator){const major=+(nav.userAgent.match(/(?:Chrome|Chromium)\/(\d+)/)||[])[1];return major>=135&&!/Android|iPhone|iPad/i.test(nav.userAgent)&&!nav.userAgentData?.mobile;}
 export function createMicInput(bridge){
- const selectable=supportsMicSelection(),key='courtside.microphone.v1';let selected='',stream=null,generation=0,devices=[];
+ const meter=createAudioMeter();const selectable=supportsMicSelection(),key='courtside.microphone.v1';let selected='',stream=null,generation=0,devices=[];
  try{selected=localStorage.getItem(key)||'';}catch{}
  if(!selectable)selected='';
  const $=s=>document.querySelector(s);
- function release(){generation++;const old=stream;stream=null;old?.getTracks().forEach(t=>t.stop());}
- async function start(recognition){
-  const ticket=++generation;
-  if(!selected){recognition.start();return;}
-  if(!selectable)throw Error('Choose your microphone in your device settings, then reconnect listening.');
-  let captured;
-  try{captured=await navigator.mediaDevices.getUserMedia({audio:{deviceId:{exact:selected},echoCancellation:true,noiseSuppression:true},video:false});}
-  catch(e){throw Error(e.name==='NotAllowedError'?'Allow microphone access, then try again.':e.name==='OverconstrainedError'||e.name==='NotFoundError'?'That microphone is disconnected. Open Switch mic and choose another.':'Could not open that microphone. Check its connection or choose another.');}
-  if(ticket!==generation){captured.getTracks().forEach(t=>t.stop());return;}
+ function release(){generation++;meter.stop();const old=stream;stream=null;old?.getTracks().forEach(t=>t.stop());}
+ async function capture(){
+  if(stream?.getAudioTracks()[0]?.readyState==='live')return stream;
+  const ticket=++generation;let captured;
+  try{captured=await navigator.mediaDevices.getUserMedia({audio:{...(selected?{deviceId:{exact:selected}}:{}),echoCancellation:true,noiseSuppression:true},video:false});}
+  catch(e){throw Error(e.name==='NotAllowedError'?'Allow microphone access, then try again.':e.name==='OverconstrainedError'||e.name==='NotFoundError'?'That microphone is disconnected. Open Switch mic and choose another.':'Could not open the microphone. Check its connection or choose another.');}
+  if(ticket!==generation){captured.getTracks().forEach(t=>t.stop());return null;}
   stream=captured;const track=stream.getAudioTracks()[0];
   track.onended=()=>{if(stream===captured){bridge.stopMic();bridge.feedback('Microphone disconnected. Open Switch mic to choose another.',true);}};
-  try{recognition.start(track);}catch(e){release();throw Error('This browser could not use the selected microphone. Choose Browser default or use current desktop Chrome.');}
+  await meter.start(captured);if(ticket!==generation)return null;return captured;
  }
+ async function start(recognition){const captured=await capture();if(!captured)return;try{selected?recognition.start(captured.getAudioTracks()[0]):recognition.start();}catch(e){release();throw Error('This browser could not start speech recognition. Try Browser default in Switch mic, or open the site in desktop Chrome.');}}
  function restart(recognition){if(selected){const track=stream?.getAudioTracks()[0];if(!track||track.readyState!=='live')throw Error('Microphone disconnected.');recognition.start(track);}else recognition.start();}
  async function list(){devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='audioinput'&&d.deviceId);const picker=$('#micDevice');if(!picker)return;picker.innerHTML='<option value="">Browser default</option>'+devices.map((d,i)=>`<option value="${esc(d.deviceId)}">${esc(d.label||'Microphone '+(i+1))}</option>`).join('');if(selected&&!devices.some(d=>d.deviceId===selected))picker.insertAdjacentHTML('beforeend',`<option value="${esc(selected)}">Previously selected microphone · disconnected</option>`);picker.value=selected;}
  async function open(){
@@ -31,5 +31,5 @@ export function createMicInput(bridge){
   $('#applyMic').onclick=()=>{selected=selectable?$('#micDevice').value:'';try{localStorage.setItem(key,selected);}catch{}$('#dialog').close();bridge.feedback(selected?'Microphone selected. Tap Start listening when ready.':'Using your browser’s microphone.');if(resume||!selectable)bridge.startMic();};
  }
  navigator.mediaDevices?.addEventListener?.('devicechange',()=>{if($('#micDevice'))list().catch(()=>{});});
- return {start,restart,release,open};
+ return {start,restart,release,open,test:capture,active:()=>!!stream};
 }
