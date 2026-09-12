@@ -1,1 +1,14 @@
-{"name":"courtside-voice-stats","private":true,"type":"module","version":"1.0.0"}
+{
+  "name": "courtside-voice-stats",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "devDependencies": {
+    "drizzle-kit": "^0.31.10",
+    "drizzle-orm": "^0.45.2"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node tests/pdf-scenario.mjs && node tests/game-rules.mjs && node tests/schedule.mjs"
+  }
+}

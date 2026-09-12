@@ -3,3 +3,6 @@ outputs/
 .sites-runtime/
 node_modules/
 *.zip
+
+dist/server/
+dist/.openai/
