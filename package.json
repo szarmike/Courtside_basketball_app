@@ -9,6 +9,6 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node tests/pdf-scenario.mjs && node tests/game-rules.mjs && node tests/schedule.mjs"
+    "test": "node tests/pdf-scenario.mjs && node tests/game-rules.mjs && node tests/schedule.mjs && node tests/natural-speech.mjs"
   }
 }

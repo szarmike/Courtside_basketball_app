@@ -6,12 +6,13 @@ Installable web app for desktop Chrome and Chrome on Android, including Google P
 
 - Configurable periods, overtime, timeouts, foul limits, team names and home/away designation.
 - Rosters with stable player IDs, names, aliases and CSV import.
-- Voice, keyboard and touch scoring; low-confidence voice confirmation queue.
+- Voice, keyboard and touch scoring; review for low-confidence speech and unclear shot/rebound types.
+- Multi-action narration with passing chains, natural shot phrases, contextual rebounds, delayed shot outcomes, raw transcripts, and an expandable parsed-events panel. Optional automatic assists credit only the last eligible passer.
 - Append-only transaction ledger with non-destructive correction patches and undo.
 - Player minutes derived from official period/clock intervals, not elapsed real time between commands.
 - Full and per-period player/team box scores, timeline, printable report and CSV export.
 - A main menu for creating collections (for example Wolves 2026) and browsing each season's games.
-- New games with spoken or typed opponent/date and an optional start time; reuse the previous game’s roster and rules within a collection.
+- Home screen on launch, with a three-step new-game wizard for teams/collection, period rules, and spoken or typed date/optional time; reuse the previous game’s roster within a collection.
 - Account-backed collections and games, automatic migration of the old local game, JSON backup/import, and local recovery for offline manual controls.
 - Revision checks prevent one device silently overwriting changes from another. Conflict recovery downloads a local backup before reopening the saved version.
 
@@ -27,6 +28,7 @@ Run with Node 20 or newer:
 node tests/pdf-scenario.mjs
 node tests/game-rules.mjs
 node tests/schedule.mjs
+node tests/natural-speech.mjs
 npm run build
 ```
 
