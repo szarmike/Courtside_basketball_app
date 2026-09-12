@@ -9,7 +9,9 @@ Installable web app for desktop Chrome and Chrome on Android, including Google P
 - Voice, keyboard and touch scoring; review for low-confidence speech and unclear shot/rebound types.
 - Multi-action narration with passing chains, natural shot phrases, contextual rebounds, delayed shot outcomes, raw transcripts, and an expandable parsed-events panel. Optional automatic assists credit only the last eligible passer.
 - Append-only transaction ledger with non-destructive correction patches and undo.
-- Player minutes derived from official period/clock intervals, not elapsed real time between commands.
+- A frozen scoreboard clock: Start game begins tracking; only an entered or spoken time advances it. End a sequence with “now it’s Q2 3:43” to timestamp all waiting plays and substitutions at that checkpoint and recalculate player minutes. Earlier anchored events stay unchanged; undo restores the previous checkpoint.
+- The current five stay directly below the scoreboard, updating immediately for single or multiple spoken substitutions.
+- Switch mic selects a concrete audio input in desktop Chrome 135+. The chosen track feeds both game speech and setup dictation. Pixel/Android Chrome does not support the speech audio-track parameter, so the phone control explains device routing and restarts listening. No unsupported microphone selection is silently claimed.
 - Full and per-period player/team box scores, timeline, printable report and CSV export.
 - A main menu for creating collections (for example Wolves 2026) and browsing each season's games.
 - Home screen on launch, with a three-step new-game wizard for teams/collection, period rules, and spoken or typed date/optional time; reuse the previous game’s roster within a collection.
@@ -29,7 +31,8 @@ node tests/pdf-scenario.mjs
 node tests/game-rules.mjs
 node tests/schedule.mjs
 node tests/natural-speech.mjs
+node tests/manual-clock.mjs
 npm run build
 ```
 
-Verified: PDF command sequence, scoring, free throws, clock pauses, halves/overtime, player-minute calculations, corrections/undo, collections, nested collection creation, spoken scheduling, optional time, roster reuse, completed-game history, two separate browser sessions retrieving shared account data, account isolation, stale-revision rejection, legacy migration, offline reload/recording/reconnection, and conflict recovery. Desktop browser automation used Chrome at desktop and 412-pixel phone widths. Physical Pixel hardware/microphone testing has not been performed. Native WebMCP registration validation was unavailable in the test browser; tools are feature-detected and optional.
+Verified: PDF command sequence, scoring, free throws, frozen clocks and batch time updates, halves/overtime, player-minute calculations, corrections/undo, collections, nested collection creation, spoken scheduling, optional time, roster reuse, completed-game history, two separate browser sessions retrieving shared account data, account isolation, stale-revision rejection, legacy migration, offline reload/recording/reconnection, and conflict recovery. Desktop browser automation used Chrome at desktop and 412-pixel phone widths. Microphone routing was checked with simulated devices for exact track selection, switching and release. Physical Pixel hardware/microphone testing has not been performed. Native WebMCP registration validation was unavailable in the test browser; tools are feature-detected and optional.
