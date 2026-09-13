@@ -1,7 +1,7 @@
 // Official-clock and substitution controls. No wall-time countdown is used.
 export function parseControls(raw,state,h){
  const {derive,normalize,parseTime,findPlayer,effectiveEvents,lengthFor,formatTime,periodLabel,uid}=h,d=derive(state),c=d.clock,ti=parseTime(raw,c,d.settings);
- let text=ti.text.replace(/\b(?:at|with)\s*[,.;]*\s*$/,'').replace(/^[,.;\s]+|[,.;\s]+$/g,'').trim();
+ let text=(ti.timeExplicit?ti.text.replace(/\bclock\b/g,' '):ti.text).replace(/\b(?:at|with)\s*[,.;]*\s*$/,'').replace(/^[,.;\s]+|[,.;\s]+$/g,'').replace(/\s+/g,' ').trim();
  const clean=s=>s.replace(/^[,.;\s]+|[,.;\s]+$/g,'').replace(/\s+/g,' ').trim();
  const stamp={period:ti.period,clock:ti.seconds};
  const make=(events,label,clock={},extra={})=>({events:events.map(e=>({...stamp,...e})),label,clock:{...(!events.every(e=>e.type==='PATCH')&&ti.explicit?{period:ti.period,seconds:ti.seconds}:{}),...clock},...extra});
