@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {cleanupTranscript,mergeTranscriptOverlap,eventFingerprint} from '../dist/transcript-cleanup.js';
+import {newGame,playerPlan,applyPlan,parseCommand,derive} from '../dist/engine.js';
+const s=newGame();for(const [number,first] of [['12','Alex'],['21','Ben'],['35','Cam'],['41','Drew'],['45','Bradenton']])applyPlan(s,playerPlan({number,first,team:'home',aliases:[]},s));applyPlan(s,parseCommand('Starters are 12, 21, 35, 41 and 45',s));applyPlan(s,parseCommand('Start game',s));
+assert.equal(cleanupTranscript('43 made a three 43 made a three'),'43 made a three');
+assert.equal(mergeTranscriptOverlap('12 passes to 45','to 45 45 scores a 2'),'12 passes to 45 45 scores a 2');
+assert.equal(cleanupTranscript('35 no 41 scores a 2',derive(s)),'41 scores a 2');
+assert.equal(cleanupTranscript('12 passes to 35 no 45',derive(s)),'12 passes to 45');
+let p=parseCommand('21 passed to Bradenton Bradenton passes to 41 41 scores a 2',s);assert.equal(p.events.filter(e=>e.type==='PASS').length,2);assert.equal(p.events.filter(e=>e.type==='SHOT').length,1);assert.match(p.cleanedTranscript,/passes/);
+assert(eventFingerprint(p).includes('SHOT'));
+applyPlan(s,p,'raw words');assert.equal(derive(s).score.home,2);
+p=parseCommand('41 scores scores a 3',s);assert.equal(p.events.filter(e=>e.type==='SHOT').length,1);
+p=parseCommand('game over',s);assert(p.confirm);assert.equal(p.events[0].type,'GAME_END');
+console.log('PASS generalized transcript cleanup, overlap merge, clause boundaries, and game-over confirmation');
