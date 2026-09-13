@@ -1,5 +1,5 @@
 import {parseNarration} from './natural.js';
-export const defaults={home:'Your team',away:'Opponent',designation:'home',periods:4,length:480,overtime:240,foulLimit:5,timeouts:5,autoAssists:false};
+export const defaults={home:'Your team',away:'Opponent',designation:'home',periods:4,length:480,overtime:240,foulLimit:5,timeouts:5,autoAssists:true};
 export const statKeys=['pts','fgm','fga','twoM','twoA','threeM','threeA','ftm','fta','oreb','dreb','reb','ast','stl','blk','to','pf'];
 export const emptyStats=()=>Object.fromEntries(statKeys.map(k=>[k,0]));
 export const uid=()=>globalThis.crypto?.randomUUID?.()||`${Date.now()}-${Math.random().toString(36).slice(2)}`;

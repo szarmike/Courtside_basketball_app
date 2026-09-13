@@ -7,7 +7,7 @@ Installable web app for desktop Chrome and Chrome on Android, including Google P
 - Configurable periods, overtime, timeouts, foul limits, team names and home/away designation.
 - Rosters with stable player IDs, names, aliases and CSV import.
 - Voice, keyboard and touch scoring; review for low-confidence speech and unclear shot/rebound types.
-- Multi-action narration with passing chains, natural shot phrases, contextual rebounds, delayed shot outcomes, raw transcripts, and an expandable parsed-events panel. Optional automatic assists credit only the last eligible passer.
+- Multi-action narration with passing chains, natural shot phrases, contextual rebounds, delayed shot outcomes, raw transcripts, and an expandable parsed-events panel. Automatic assists default on for new games and credit only the last eligible passer; disable them in game setup.
 - Append-only transaction ledger with non-destructive correction patches and undo.
 - A frozen scoreboard clock: Start game begins tracking; only an entered or spoken time advances it. End a sequence with “now it’s Q2 3:43” to timestamp all waiting plays and substitutions at that checkpoint and recalculate player minutes. Earlier anchored events stay unchanged; undo restores the previous checkpoint.
 - The current five stay directly below the scoreboard, updating immediately for single or multiple spoken substitutions.
@@ -42,3 +42,5 @@ node tests/account-security.mjs
 ```
 
 Verified: PDF command sequence, scoring, free throws, frozen clocks and batch time updates, halves/overtime, player-minute calculations, corrections/undo, collections, nested collection creation, spoken scheduling, optional time, roster reuse, completed-game history, two separate browser sessions retrieving shared account data, account isolation, stale-revision rejection, legacy migration, offline reload/recording/reconnection, and conflict recovery. Desktop browser automation used Chrome at desktop and 412-pixel phone widths. The level meter was tested with a synthetic Web Audio signal; online recognition failures and offline install/recognition were tested with simulated browser service responses. The user’s real speech-provider connection has not been verified. Microphone routing was checked with simulated devices for exact track selection, switching and release. Physical Pixel hardware/microphone testing has not been performed. Native WebMCP registration validation was unavailable in the test browser; tools are feature-detected and optional.
+
+Plain rebound calls go to your team without inventing a player credit; shot context determines offensive/defensive type where available. Explicit player and opponent calls take priority. The configured opponent name is recognized as an opponent team reference. Existing games keep their saved assist setting.

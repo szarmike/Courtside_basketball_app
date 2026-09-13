@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';import {newGame,derive,applyPlan,parseCommand,commit,defaults,playerPlan} from '../dist/engine.js';
+const say=(s,t)=>{const p=parseCommand(t,s);assert(!p.choices?.length,t);applyPlan(s,p,t);return p;};
+function game(away='Woodland'){const s=newGame();commit(s,[{type:'CONFIG',settings:{...defaults,away}}]);for(const n of [12,16,22,43,45])applyPlan(s,playerPlan({number:''+n,first:'Player'+n,team:'home'},s));commit(s,[{type:'STARTERS',team:'home',players:derive(s).roster.map(p=>p.id)}]);return s;}
+for(const name of ['Woodland','Woodland Wolves','St. Mary’s','Team 23']){const s=game(name);say(s,name+' scores a 3');assert.equal(derive(s).score.away,3,name);assert.equal(derive(s).score.home,0);say(s,name+' shoots a two');say(s,'missed');say(s,'a rebound');assert.equal(derive(s).totals.home.dreb,1);assert.equal(derive(s).totals.away.reb,0);assert.equal(derive(s).timeline.at(-1).playerId,null);}
+{const s=game();say(s,'rebound');assert.equal(derive(s).totals.home.reb,1);assert.equal(derive(s).totals.away.reb,0);}
+{const s=game();say(s,'Woodland shoots a three');say(s,'rebound');assert.equal(derive(s).totals.away.threeA,1);assert.equal(derive(s).totals.home.dreb,1);}
+{const s=game();say(s,'Woodland missed a three and rebound');assert.equal(derive(s).totals.home.dreb,1);say(s,'Woodland gets the offensive rebound');assert.equal(derive(s).totals.away.oreb,1);say(s,'they get the offensive rebound');assert.equal(derive(s).totals.away.oreb,2);}
+{const s=game();say(s,'43 misses a three and gets his own rebound');assert.equal(derive(s).players[derive(s).roster.find(p=>p.number==='43').id].stats.oreb,1);}
+{const s=game();say(s,'12 passes to 43, 43 shoots a three and scores');assert.equal(derive(s).totals.home.ast,1);const settings={...derive(s).settings,autoAssists:false};commit(s,[{type:'CONFIG',settings}]);say(s,'12 passes to 43, 43 shoots a two and scores');assert.equal(derive(s).totals.home.ast,1);assert.equal(derive(s).settings.autoAssists,false);}
+console.log('PASS named opponents, plain home rebounds, pending opponent misses, explicit rebound ownership and default/disabled assists');
