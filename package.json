@@ -5,10 +5,16 @@
   "version": "1.0.0",
   "devDependencies": {
     "drizzle-kit": "^0.31.10",
-    "drizzle-orm": "^0.45.2"
+    "drizzle-orm": "^0.45.2",
+    "esbuild": "^0.28.2"
   },
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node tests/pdf-scenario.mjs && node tests/game-rules.mjs && node tests/schedule.mjs && node tests/natural-speech.mjs && node tests/manual-clock.mjs && node tests/audio-service.mjs"
+    "test": "node tests/pdf-scenario.mjs && node tests/game-rules.mjs && node tests/schedule.mjs && node tests/natural-speech.mjs && node tests/manual-clock.mjs && node tests/audio-service.mjs && node tests/season-upgrade.mjs"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8"
   }
 }

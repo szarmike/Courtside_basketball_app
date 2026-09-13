@@ -14,7 +14,8 @@ Installable web app for desktop Chrome and Chrome on Android, including Google P
 - A live input meter reports RMS dBFS with one decimal place. It is an uncalibrated digital input level, not room SPL; the meter works independently of transcription and can be started with Test mic. Captured tracks and Web Audio resources stop on Stop, menu navigation, or page hiding.
 - Recognition prefers an installed on-device English model where supported. Enable offline speech offers a user-triggered language-pack download. Cloud service network failures use 2/5/10/20-second retries before leaving the meter active in test-only mode; unavailable browser/provider services are explained without claiming the user’s entire network is disconnected. Missing transcripts are not invented or silently recorded.
 - Switch mic selects a concrete audio input in desktop Chrome 135+. The chosen track feeds both game speech and setup dictation. Pixel/Android Chrome does not support the speech audio-track parameter, so the phone control explains device routing and restarts listening. No unsupported microphone selection is silently claimed.
-- Full and per-period player/team box scores, timeline, printable report and CSV export.
+- Full and per-period player/team box scores, timeline, printable report and CSV export. End-game confirmation offers an automatic whole-team or single-player PDF; reports can be downloaded again from Box score. PDF code is bundled from `client/reports.js`.
+- A2/A3 transcription aliases stage shots until an outcome arrives. Only on-court players can record actions. Opp/opponent/opponet/enemy/other team context supports team steals and scores. “Moving onto the second quarter” closes the previous period and resets the clock to the configured period length.
 - A main menu for creating collections (for example Wolves 2026) and browsing each season's games.
 - Home screen on launch, with a three-step new-game wizard for teams/collection, period rules, and spoken or typed date/optional time; reuse the previous game’s roster within a collection.
 - Account-backed collections and games, automatic migration of the old local game, JSON backup/import, and local recovery for offline manual controls.
@@ -24,7 +25,7 @@ Games synchronize to the signed-in user's account. Open or refresh the menu to r
 
 ## Source and verification
 
-`dist/` contains the authored browser application. `server/worker.js` provides authenticated account storage through the Sites D1 binding `DB`. The build embeds the browser assets and shared scoring engine in `dist/server/index.js`. Schema and generated migrations live in `db/` and `drizzle/`. Authorization is enforced per request using the platform's authenticated user ID. No external runtime JavaScript dependencies are required. Fonts have local fallbacks.
+`dist/` contains the authored browser application. `server/worker.js` provides authenticated account storage through the Sites D1 binding `DB`. The build embeds the browser assets and shared scoring engine in `dist/server/index.js`. Schema and generated migrations live in `db/` and `drizzle/`. Authorization uses opaque, hashed server sessions in Secure HttpOnly SameSite cookies. `server/auth.js` handles username/password signup and login with bcrypt cost 12, 30-day sessions, and database-backed rate limits. Usernames use 3–24 letters/numbers/underscores; passwords require 12 characters and at most 72 UTF-8 bytes. No email or password reset is offered. The trusted platform identity is used only to move legacy data into the first registered account. Local backups are scoped by account ID. No external runtime JavaScript dependencies are required. Fonts have local fallbacks.
 
 Run with Node 20 or newer:
 
@@ -35,7 +36,9 @@ node tests/schedule.mjs
 node tests/natural-speech.mjs
 node tests/manual-clock.mjs
 node tests/audio-service.mjs
+node tests/season-upgrade.mjs
 npm run build
+node tests/account-security.mjs
 ```
 
 Verified: PDF command sequence, scoring, free throws, frozen clocks and batch time updates, halves/overtime, player-minute calculations, corrections/undo, collections, nested collection creation, spoken scheduling, optional time, roster reuse, completed-game history, two separate browser sessions retrieving shared account data, account isolation, stale-revision rejection, legacy migration, offline reload/recording/reconnection, and conflict recovery. Desktop browser automation used Chrome at desktop and 412-pixel phone widths. The level meter was tested with a synthetic Web Audio signal; online recognition failures and offline install/recognition were tested with simulated browser service responses. The user’s real speech-provider connection has not been verified. Microphone routing was checked with simulated devices for exact track selection, switching and release. Physical Pixel hardware/microphone testing has not been performed. Native WebMCP registration validation was unavailable in the test browser; tools are feature-detected and optional.

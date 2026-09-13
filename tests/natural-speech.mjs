@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';import {newGame,playerPlan,applyPlan,parseCommand,derive,commit,defaults,undo} from '../dist/engine.js';
-export function fixture(autoAssists=false){const s=newGame();for(const number of [2,3,4,12,16,22,35,43,45,60,70])applyPlan(s,playerPlan({number:String(number),first:number===22?'Mason':number===43?'Cayden':`P${number}`,last:'',team:'home',aliases:[]},s));commit(s,[{type:'CONFIG',settings:{...defaults,autoAssists}}]);return s;}
+export function fixture(autoAssists=false,numbers=[12,43,22,2,4]){const s=newGame();for(const number of [2,3,4,12,16,22,35,43,45,60,70])applyPlan(s,playerPlan({number:String(number),first:number===22?'Mason':number===43?'Cayden':`P${number}`,last:'',team:'home',aliases:[]},s));commit(s,[{type:'CONFIG',settings:{...defaults,autoAssists}}]);const roster=derive(s).roster;commit(s,[{type:"STARTERS",team:"home",players:[...new Set([...numbers,...roster.map(p=>+p.number)])].slice(0,5).map(n=>roster.find(p=>+p.number===n).id)}]);return s;}
 const cases=[
 ['12 passes to 45 to 16 16 shoots and scores on the 2 point line',[['PASS',12,45],['PASS',45,16],['SHOT',16,2,1]]],
 ['35 passed to 70 to 60 then shoots for a three and scores',[['PASS',35,70],['PASS',70,60],['SHOT',60,3,1]]],
@@ -23,8 +23,8 @@ const cases=[
 ['Okay um 43 gets it and then uh passes to 12 and 12, yeah, shoots the three and it\'s good',[['PASS',43,12],['SHOT',12,3,1]]],
 ];
 function compact(p,s){const d=derive(s);return p.events.filter(e=>e.type!=='NARRATION_CONTEXT').map(e=>{const n=e.playerId?+d.players[e.playerId].number:null;return e.type==='PASS'?[e.type,n,+d.players[e.toPlayerId].number]:e.type==='SHOT'?[e.type,n,e.value,e.made]:e.type==='STAT'?[e.type,n,e.stat]:[e.type,n];});}
-let failures=0;for(const [raw,want]of cases){try{const s=fixture(),p=parseCommand(raw,s);assert.deepEqual(p.choices||[],[],'unexpected review');assert.deepEqual(compact(p,s),want);applyPlan(s,p,raw);console.log('PASS',raw);}catch(e){console.error('FAIL',raw,'\n',e.message);failures++;}}
-{const s=fixture(true);const p=parseCommand('35 to 70 to 60, three pointer good',s);console.log('AUTO',compact(p,s));assert.deepEqual(compact(p,s),[['PASS',35,70],['PASS',70,60],['SHOT',60,3,1],['STAT',70,'ast']]);applyPlan(s,p);assert.equal(derive(s).score.home,3);undo(s);assert.equal(derive(s).score.home,0);}
+let failures=0;for(const [raw,want]of cases){try{const involved=want.flatMap(e=>e[0]==="PASS"?[e[1],e[2]]:[e[1]]).filter(n=>n!==null);const s=fixture(false,involved),p=parseCommand(raw,s);assert.deepEqual(p.choices||[],[],'unexpected review');assert.deepEqual(compact(p,s),want);applyPlan(s,p,raw);console.log('PASS',raw);}catch(e){console.error('FAIL',raw,'\n',e.message);failures++;}}
+{const s=fixture(true,[35,70,60]);const p=parseCommand('35 to 70 to 60, three pointer good',s);console.log('AUTO',compact(p,s));assert.deepEqual(compact(p,s),[['PASS',35,70],['PASS',70,60],['SHOT',60,3,1],['STAT',70,'ast']]);applyPlan(s,p);assert.equal(derive(s).score.home,3);undo(s);assert.equal(derive(s).score.home,0);}
 {const s=fixture();let p=parseCommand('43 shoots the three',s);assert(p.waiting);applyPlan(s,p,'43 shoots the three');assert.equal(derive(s).totals.home.fga,0);p=parseCommand('airball',s);applyPlan(s,p,'airball');assert.equal(derive(s).totals.home.fga,1);assert.equal(derive(s).score.home,0);p=parseCommand('yeah he missed everything',s);applyPlan(s,p);assert.equal(derive(s).totals.home.fga,1);}
 assert.equal(failures,0,`${failures} narration failures`);
 

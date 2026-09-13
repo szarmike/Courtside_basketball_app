@@ -1,3 +1,7 @@
 import {sqliteTable,text,integer,primaryKey,index,uniqueIndex} from 'drizzle-orm/sqlite-core';
 export const collections=sqliteTable('collections',{owner:text('owner').notNull(),id:text('id').notNull(),name:text('name').notNull(),teamName:text('team_name').notNull(),createdAt:text('created_at').notNull()},t=>[primaryKey({columns:[t.owner,t.id]}),uniqueIndex('collections_owner_name').on(t.owner,t.name)]);
 export const games=sqliteTable('games',{owner:text('owner').notNull(),id:text('id').notNull(),collectionId:text('collection_id'),payload:text('payload').notNull(),summary:text('summary').notNull(),revision:integer('revision').notNull(),updatedAt:text('updated_at').notNull()},t=>[primaryKey({columns:[t.owner,t.id]}),index('games_owner_collection').on(t.owner,t.collectionId)]);
+
+export const accounts=sqliteTable('accounts',{id:text('id').primaryKey(),username:text('username').notNull().unique(),passwordHash:text('password_hash').notNull(),legacyOwner:text('legacy_owner').unique(),createdAt:text('created_at').notNull()});
+export const sessions=sqliteTable('sessions',{tokenHash:text('token_hash').primaryKey(),accountId:text('account_id').notNull(),expiresAt:integer('expires_at').notNull()},t=>[index('sessions_expiry').on(t.expiresAt),index('sessions_account').on(t.accountId)]);
+export const authLimits=sqliteTable('auth_limits',{key:text('key').primaryKey(),attempts:integer('attempts').notNull(),resetsAt:integer('resets_at').notNull()});
