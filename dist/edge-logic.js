@@ -7,6 +7,7 @@ function clean(raw,normalize){
     .replace(/\b(\w+)(?:\s+\1){1,3}\b/g,'$1')
     .replace(/\b(?:no wait|wait no|sorry|actually)\b[,. ]*/g,' actually ')
     .replace(/\s+/g,' ').trim();
+  t=t.replace(/\bscores? (?:of|off) ([23])\b/g,'scores a $1 pointer');
   t=t.replace(/^(?:number )?#?\d+\s+actually\s+((?:number )?#?\d+\s+.+)$/,'$1');
   // Keep the final player in a same-sentence correction.
   let m=t.match(/^(.*?)\b(?:wait|actually|sorry) (?:that was |it was )?(?:number )?(#?\d+|[a-z]+)$/);
@@ -22,6 +23,7 @@ function recent(events,predicate){return [...events].reverse().find(predicate);}
 export function prepareEdge(raw,state,h){
   const d=h.derive(state),normalized=h.normalize(raw),n=clean(raw,h.normalize),cleaned=n!==normalized,events=h.effectiveEvents(state),stamp={period:d.clock.period,clock:d.clock.seconds};
   const plan=(items,label,extra={})=>({events:items.map(e=>({...stamp,...e})),label,...extra});
+  const leading=n.match(/^(?:number |player |jersey )?(\d{1,2})\s+(?:shoots?|scores?|made|makes?|misses?|rebound|passes?|fouls?|steals?|blocks?|turnover)\b/);if(leading&&!d.roster.some(p=>p.team==='home'&&String(p.number)===leading[1])){const near=d.roster.filter(p=>p.team==='home'&&Math.abs(+p.number-+leading[1])===1);if(near.length===1)throw Error(`Player #${leading[1]} is not on the roster. Did you mean #${near[0].number} ${near[0].first}?`);}
   if(/^actually it was .*\bfor\b/.test(normalized))return {raw};
   if(/^wait that was (?:number )?#?\d+$/.test(normalized))return {raw:normalized.replace(/^wait /,'')};
   if(QUIET.test(n)||TOTAL_ONLY.test(n)||/^(?:no call|play on|nothing there|almost (?:a )?(?:steal|block)|nearly (?:a )?(?:steal|block))$/.test(n))return {plan:{ignored:true,label:'Heard as sideline talk · nothing recorded'}};
@@ -50,6 +52,10 @@ export function prepareEdge(raw,state,h){
   if(m){const from=h.findPlayer(m[1],d.roster,'home'),to=h.findPlayer(m[2],d.roster,'home'),e=recent(events,e=>e.type==='STAT'&&['reb','oreb','dreb'].includes(e.stat)&&e.playerId===from.id);if(!e)throw Error(`No recent rebound for #${from.number} was found.`);return {plan:plan([{type:'PATCH',patches:[{id:e.id,values:{playerId:to.id,team:to.team}}]}],`Rebound reassigned to #${to.number}`)};}
 
   if(/\b(?:shot clock violation|backcourt violation|lane violation|team turnover)\b/.test(n))return {plan:plan([{type:'TEAM_TURNOVER',team:/\b(opponent|their|them)\b/.test(n)?'away':'home',reason:n}],'Team turnover')};
+  m=n.match(/^(.+?) fouled out[,]? (.+?) (?:is )?(?:coming|comes|goes|checks)?\s*in$/);
+  if(m){const outgoing=h.findPlayer(m[1],d.roster,'home'),incoming=h.findPlayer(m[2],d.roster,'home');if(outgoing.id===incoming.id)throw Error('A player cannot replace themselves.');return {plan:plan([{type:'STAT',stat:'pf',playerId:outgoing.id,team:outgoing.team},{type:'PLAYER_OUT',playerId:outgoing.id,team:outgoing.team,reason:'FOUL_OUT'},{type:'PLAYER_IN',playerId:incoming.id,team:incoming.team,reason:'FOUL_OUT_REPLACEMENT'}],`#${outgoing.number} fouled out · #${incoming.number} in`,{substitution:true})};}
+  m=n.match(/^(.+?) (?:is )?coming out[,]? (.+?) in for (?:him|her)$/);
+  if(m){const outgoing=h.findPlayer(m[1],d.roster,'home'),incoming=h.findPlayer(m[2],d.roster,'home');if(outgoing.id===incoming.id)throw Error('A player cannot replace themselves.');return {plan:plan([{type:'PLAYER_OUT',playerId:outgoing.id,team:outgoing.team,reason:'INJURY'},{type:'PLAYER_IN',playerId:incoming.id,team:incoming.team,reason:'INJURY_REPLACEMENT'}],`#${outgoing.number} out · #${incoming.number} in`,{substitution:true})};}
   if(/\b(?:jump ball|held ball|tie up)\b/.test(n))return {plan:plan([{type:'HELD_BALL',team:/\b(opponent|their|them)\b/.test(n)?'away':'home'}],'Held ball')};
   if(/\b(?:possession arrow|arrow stays|arrow goes|won (?:the )?tip|controls? (?:the )?tip)\b/.test(n))return {plan:plan([{type:'POSSESSION',team:/\b(opponent|their|them)\b/.test(n)?'away':'home',reason:n}],'Possession updated')};
   if(/\b(?:official|referee|ref|media) timeout\b/.test(n))return {plan:plan([{type:'OFFICIAL_TIMEOUT',reason:n}],'Official timeout',{clock:{officialRunning:false}})};
