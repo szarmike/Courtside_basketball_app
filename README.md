@@ -1,6 +1,6 @@
 # Courtside Basketball Voice Stats
 
-Installable web app for desktop Chrome and Chrome on Android, including Google Pixel. Open the published HTTPS site, allow microphone access, and use Chrome's Install/Add to Home screen option. Keep the app visible while listening. Background recording and offline speech recognition are not guaranteed by browser speech services.
+Installable web app for iPhone, iPad, Android phones including Google Pixel, and desktop browsers. The always-visible Install app button uses the native browser prompt when available and otherwise shows instructions for the current device. Open the published HTTPS site, allow microphone access, and keep the app visible while listening. Background recording and offline speech recognition are not guaranteed by browser speech services.
 
 ## Features
 
