@@ -31,5 +31,5 @@ export function createMicInput(bridge){
   $('#applyMic').onclick=()=>{selected=selectable?$('#micDevice').value:'';try{localStorage.setItem(key,selected);}catch{}$('#dialog').close();bridge.feedback(selected?'Microphone selected. Tap Start listening when ready.':'Using your browser’s microphone.');if(resume||!selectable)bridge.startMic();};
  }
  navigator.mediaDevices?.addEventListener?.('devicechange',()=>{if($('#micDevice'))list().catch(()=>{});});
- return {start,restart,release,open,test:capture,active:()=>!!stream};
+ return {start,restart,release,open,test:capture,capture,active:()=>!!stream};
 }
